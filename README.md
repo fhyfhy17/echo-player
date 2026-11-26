@@ -14,9 +14,9 @@
 
 | 文件 | 平台 |
 |---|---|
-| `回声-1.0.0-arm64.dmg` | Apple 芯片 Mac（M1 及以后） |
-| `回声-1.0.0.dmg` | Intel Mac |
-| `回声 Setup 1.0.0.exe` | Windows 10 / 11（64 位） |
+| `Echo-1.0.0-mac-arm64.dmg` | Apple 芯片 Mac（M1 及以后） |
+| `Echo-1.0.0-mac-x64.dmg` | Intel Mac |
+| `Echo-Setup-1.0.0-win-x64.exe` | Windows 10 / 11（64 位） |
 
 安装包没有代码签名，第一次打开时系统会拦一下：
 
