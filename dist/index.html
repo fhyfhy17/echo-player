@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07070a" />
+    <meta
+      name="description"
+      content="回声是一个可以离线使用的个人音乐播放器。"
+    />
+    <title>回声 · 本地音乐播放器</title>
+    <script>
+      // Apply the saved theme before first paint so there is no dark/light flash.
+      try {
+        if (localStorage.getItem("echo-theme-v2") === "light") document.documentElement.dataset.theme = "light";
+      } catch {}
+      if (/Electron/.test(navigator.userAgent)) document.documentElement.classList.add("is-frameless");
+    </script>
+    <link rel="stylesheet" href="style.css?v=50" />
+    <script defer src="app.js?v=73"></script>
+  </head>
+  <body>
+    <div class="window-drag" aria-hidden="true"></div>
+    <div class="workspace">
+      <aside class="sidebar" aria-label="导航">
+        <button class="brand" data-view="discover">
+          <span class="brand-mark" data-icon="wave"></span
+          ><span>回声<small>ECHO PLAYER</small></span>
+        </button>
+        <nav class="navigation" aria-label="音乐">
+          <div class="nav-label">浏览</div>
+          <button data-view="discover" data-icon="compass">发现</button>
+          <button data-view="daily" data-icon="calendar">每日推荐</button>
+          <button data-view="roam" data-icon="roam">私人漫游</button>
+          <button data-view="charts" data-icon="chart">排行榜</button>
+          <button data-view="online-lists" data-icon="list">在线歌单</button>
+          <div class="nav-label">资料库</div>
+          <button data-view="library" data-icon="note">本地音乐</button>
+          <button data-view="recent" data-icon="clock">最近播放</button>
+          <button data-view="favorites" data-icon="heart">我喜欢的音乐</button>
+          <div class="nav-label list-label">
+            我的歌单<button
+              class="icon-button"
+              id="new-playlist"
+              data-icon="plus"
+              aria-label="新建歌单"
+              title="新建歌单"
+            ></button>
+          </div>
+          <div id="playlists"></div>
+        </nav>
+        <button id="sidebar-import" class="sidebar-import" data-icon="folder">
+          导入音乐
+        </button>
+      </aside>
+      <div class="stage">
+        <header class="topbar">
+          <div class="location" id="location">发现</div>
+          <form id="search-form" class="search" role="search">
+            <span data-icon="search"></span
+            ><input
+              id="search-input"
+              aria-label="搜索歌曲或歌手"
+              placeholder="搜索歌曲或歌手"
+              maxlength="140"
+            /><kbd>/</kbd>
+          </form>
+          <div class="top-actions">
+            <button
+              class="icon-button"
+              id="theme-toggle"
+              data-icon="sun"
+              data-action="toggle-theme"
+              aria-label="切换到明亮模式"
+              title="切换到明亮模式"
+            ></button>
+            <button
+              class="icon-button"
+              id="queue-toggle"
+              data-icon="queue"
+              aria-label="播放队列"
+              title="播放队列"
+              aria-expanded="false"
+            ></button>
+            <button
+              class="ghost-pill small"
+              id="immersive-toggle"
+              data-icon="wave"
+              aria-label="沉浸播放"
+              title="沉浸歌词视图 (F)"
+            >
+              <span>沉浸</span>
+            </button>
+          </div>
+        </header>
+        <div class="columns">
+          <main id="main" tabindex="-1"></main>
+          <aside class="listen-panel" id="listen-panel" aria-label="播放详情">
+            <div class="panel-heading">
+              <div class="panel-tabs" aria-label="播放详情">
+                <button data-panel="playing" aria-pressed="true">
+                  正在播放</button
+                ><button data-panel="queue" aria-pressed="false">队列</button
+                ><button data-panel="lyrics" aria-pressed="false">歌词</button>
+              </div>
+              <button
+                id="close-panel"
+                class="icon-button"
+                data-icon="x"
+                aria-label="关闭播放详情"
+              ></button>
+            </div>
+            <div id="panel-content"></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+    <footer class="player" aria-label="播放器">
+      <div class="player-track">
+        <button
+          id="current-cover"
+          class="cover player-cover"
+          aria-label="展开沉浸播放"
+          title="展开沉浸歌词 (F)"
+        ></button>
+        <div class="track-text">
+          <strong id="current-title">未在播放</strong
+          ><span id="current-artist">选择一首歌开始</span>
+        </div>
+        <button
+          id="current-favorite"
+          class="icon-button"
+          data-icon="heart"
+          aria-label="收藏当前歌曲"
+          title="收藏当前歌曲"
+          aria-pressed="false"
+          disabled
+        ></button>
+        <button
+          id="current-source"
+          class="source-badge"
+          data-action="switch-source"
+          hidden
+        ></button>
+      </div>
+      <div class="player-middle">
+        <div class="transport">
+          <button
+            class="icon-button"
+            id="shuffle"
+            data-icon="shuffle"
+            aria-label="随机播放"
+            title="随机播放"
+            aria-pressed="false"
+          ></button>
+          <button
+            class="icon-button"
+            id="prev"
+            data-icon="previous"
+            aria-label="上一首"
+            title="上一首"
+          ></button>
+          <button
+            id="play"
+            class="play-button"
+            data-icon="play"
+            aria-label="播放"
+            title="播放"
+          ></button>
+          <button
+            class="icon-button"
+            id="next"
+            data-icon="next"
+            aria-label="下一首"
+            title="下一首"
+          ></button>
+          <button
+            class="icon-button"
+            id="repeat"
+            data-icon="repeat"
+            aria-label="循环模式"
+            title="循环模式"
+            aria-pressed="false"
+          ></button>
+        </div>
+        <div class="timeline">
+          <span id="elapsed">0:00</span
+          ><input
+            id="seek"
+            type="range"
+            min="0"
+            max="1000"
+            step="1"
+            value="0"
+            aria-label="播放进度"
+            disabled
+          /><span id="duration">0:00</span>
+        </div>
+      </div>
+      <div class="player-tools">
+        <button
+          id="player-lyrics-btn"
+          class="player-lyric-btn"
+          data-action="toggle-immersive"
+          aria-label="沉浸歌词"
+          title="沉浸歌词 (F)"
+        >
+          词
+        </button>
+        <button
+          id="shortcut-help"
+          class="icon-button"
+          data-icon="help"
+          data-action="show-shortcuts"
+          aria-label="桌面快捷键"
+          title="桌面快捷键 (?)"
+        ></button>
+        <button
+          id="mute"
+          class="icon-button"
+          data-icon="volume"
+          aria-label="静音"
+          title="静音 (M)"
+        ></button>
+        <input
+          id="volume"
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value="0.70"
+          aria-label="音量"
+        />
+      </div>
+    </footer>
+    <audio id="audio" preload="metadata"></audio>
+    <input
+      id="file-input"
+      type="file"
+      accept="audio/*,.mp3,.m4a,.mp4,.aac,.flac,.ogg,.oga,.opus,.wav,.aif,.aiff,.webm,.lrc"
+      multiple
+      hidden
+    />
+    <input id="folder-input" type="file" webkitdirectory multiple hidden />
+    <div id="drop-overlay" hidden>
+      <div>
+        <span data-icon="folder"></span><strong>松开以导入音乐</strong
+        ><span>音频与同名 LRC 文件</span>
+      </div>
+    </div>
+    <div id="source-status" class="source-status" role="alert" hidden></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <dialog id="dialog" aria-labelledby="dialog-title">
+      <form id="dialog-form" method="dialog">
+        <div class="dialog-header">
+          <h2 id="dialog-title"></h2>
+          <button
+            class="icon-button"
+            type="button"
+            data-icon="x"
+            id="close-dialog"
+            aria-label="关闭"
+          ></button>
+        </div>
+        <div id="dialog-content"></div>
+      </form>
+    </dialog>
+    <section
+      id="immersive-stage"
+      class="immersive-stage"
+      hidden
+      aria-modal="true"
+      role="dialog"
+      aria-label="沉浸播放"
+    ></section>
+  </body>
+</html>

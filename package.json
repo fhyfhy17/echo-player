@@ -1,0 +1,78 @@
+{
+  "name": "echo-player",
+  "productName": "回声",
+  "version": "1.0.0",
+  "description": "回声 · 本地音乐播放器",
+  "license": "MIT",
+  "author": "fhyfhy17",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fhyfhy17/echo-player.git"
+  },
+  "main": "electron/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "server": "node backend/cli.js --port 8780",
+    "check": "node scripts/check.js",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist": "electron-builder --mac --win"
+  },
+  "dependencies": {
+    "@neteasecloudmusicapienhanced/api": "4.41.1",
+    "entities": "^4.5.0",
+    "p-limit": "^3.1.0",
+    "seedrandom": "3.0.5"
+  },
+  "devDependencies": {
+    "electron": "45.5.0",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "local.echo.player",
+    "productName": "回声",
+    "copyright": "Echo Player",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "backend/**/*",
+      "dist/**/*",
+      "package.json",
+      "!**/*.map"
+    ],
+    "asar": true,
+    "mac": {
+      "category": "public.app-category.music",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "回声"
+    }
+  }
+}

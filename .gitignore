@@ -1,0 +1,11 @@
+node_modules/
+release/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Old Python version: kept locally, not part of the Electron app
+/server.py
+/sources/
+/legacy/
+/打开回声.command
